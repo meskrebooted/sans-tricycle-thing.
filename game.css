@@ -1,0 +1,53 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #000;
+}
+
+#gameArea {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    background: #000000;
+    overflow: hidden;
+}
+
+#gameArea img {
+    image-rendering: pixelated;
+}
+
+.lane-line {
+    position: absolute;
+    z-index: 1;
+}
+
+#player, .enemy {
+    z-index: 2;
+    width: 150px;
+
+}
+
+#message {
+    z-index: 10;
+}
+
+@font-face {
+    font-family: pixel;
+    src: url(comic.ttf);
+}
+
+.gaster-beam {
+    pointer-events: none;
+    animation: beam-flicker 0.15s infinite alternate;
+}
+
+@keyframes beam-flicker {
+    0% { opacity: 0.85; }
+    100% { opacity: 1; }
+}
+
+#specialBarFill {
+    image-rendering: pixelated;
+}

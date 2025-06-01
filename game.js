@@ -9,7 +9,7 @@ function showStartScreen() {
     gameArea.style.background = '#000';
     gameArea.style.overflow = 'hidden';
 
-    // Titolo centrato più verso il centro
+    // Titolo
     const title = document.createElement('img');
     title.src = 'title.png';
     title.style.position = 'absolute';
@@ -21,7 +21,7 @@ function showStartScreen() {
     title.style.zIndex = 10;
     gameArea.appendChild(title);
 
-    // men.png sopra il titolo, ma più verso il centro
+    // Men
     const men = document.createElement('img');
     men.src = 'men.png';
     men.style.position = 'absolute';
@@ -33,7 +33,7 @@ function showStartScreen() {
     men.style.zIndex = 11;
     gameArea.appendChild(men);
 
-    // Scritta sotto il titolo, più verso il centro
+    // Testo
     const startText = document.createElement('div');
     startText.innerText = "Press 'Z' to start blastin.";
     startText.style.position = 'absolute';
@@ -48,35 +48,15 @@ function showStartScreen() {
     startText.style.zIndex = 12;
     gameArea.appendChild(startText);
 
-    // Avvia il gioco solo con Z
+    // Avvio
     function startOnZ(e) {
         if (e.key === 'z' || e.key === 'Z') {
             document.removeEventListener('keydown', startOnZ);
 
-            // Mostra exp.gif centrato e molto grande
-            gameArea.innerHTML = '';
-            const exp = document.createElement('img');
-            exp.src = 'exp.gif';
-            exp.style.position = 'fixed';
-            exp.style.left = '50%';
-            exp.style.top = '50%';
-            exp.style.transform = 'translate(-50%, -50%)';
-            exp.style.width = '200vw';
-            exp.style.height = '200vh';
-            exp.style.objectFit = 'cover';
-            exp.style.imageRendering = 'pixelated';
-            exp.style.zIndex = 100;
-            gameArea.appendChild(exp);
-
-            // Suono exp.mp3
-            const expSound = new Audio('exp.mp3');
-            expSound.volume = 1;
-            expSound.play();
-
-            // Dopo 1.8 secondi (o la durata della gif), avvia il gioco
-            setTimeout(() => {
-                startGame();
-            }, 1800);
+            gasterBlastTextSequence({
+                text: "Press 'Z' to start blastin.",
+                onEnd: startGame
+            });
         }
     }
     document.addEventListener('keydown', startOnZ);
@@ -93,20 +73,17 @@ let specialReady = false;
 let specialActive = false;
 let specialTimeout;
 let gasterBlasterEl;
-let beamEl = null; // AGGIUNGI QUESTA RIGA TRA LE VARIABILI GLOBALI
+let beamEl = null; // Raggio
 
 function startGame() {
-    // Play sound at game start
+    // Audio
     const audio = new Audio('stmpwyfs.mp3');
     audio.currentTime = 0;
     audio.volume = 1;
     audio.loop = true;
-    audio.muted = false; // Assicurati che l'audio non sia muto
-    // Prova a riprodurre l'audio immediatamente
-    // per evitare problemi di autoplay su alcuni browser
+    audio.muted = false;
     document.body.appendChild(audio);
     audio.load();
-    // Attendi che l'utente interagisca con la pagina
     audio.play().catch(() => {
         const resumeAudio = () => {
             audio.play();
@@ -116,8 +93,8 @@ function startGame() {
         document.addEventListener('keydown', resumeAudio);
         document.addEventListener('mousedown', resumeAudio);
     });
-    // Riduci la velocità dei nemici e delle linee
-    // (modifica i valori usati più avanti)
+
+    // Area
     const gameArea = document.getElementById('gameArea');
     gameArea.innerHTML = '';
     gameArea.style.position = 'relative';
@@ -130,22 +107,24 @@ function startGame() {
     gameArea.style.background = '#0000';
     gameArea.style.overflow = 'hidden';
 
+    // Corsie
     lanePositions = [];
     for (let i = 0; i < laneCount; i++) {
         lanePositions.push((gameArea.clientHeight / laneCount) * i + gameArea.clientHeight / (laneCount * 2));
     }
 
+    // Linee
     for (let i = 1; i < laneCount; i++) {
         const line = document.createElement('div');
         line.className = 'lane-line';
         line.style.top = `${(gameArea.clientHeight / laneCount) * i - 2}px`;
         line.style.left = '0';
         line.style.width = '100%';
-        line.style.height = '18px'; // ancora più spesse
+        line.style.height = '18px';
         line.style.background = `
     repeating-linear-gradient(
         to right,
-        #FFD700 0 60px,      /* tratto giallo caldo lungo */
+        #FFD700 0 60px,
         transparent 60px 120px
     ),
     repeating-radial-gradient(
@@ -154,19 +133,20 @@ function startGame() {
         transparent 10px 120px
     )
 `;
-        line.style.opacity = '0.95'; // più visibili
+        line.style.opacity = '0.95';
         line.style.position = 'absolute';
         gameArea.appendChild(line);
 
-        // Animazione delle linee - molto più veloce
+        // Animazione
         let offset = 0;
         const interval = setInterval(() => {
-            offset = (offset - 32 + 80) % 80; // velocità aumentata
+            offset = (offset - 32 + 80) % 80;
             line.style.backgroundPosition = `${offset}px 0`;
-        }, 15); // intervallo dimezzato
+        }, 15);
         laneLineIntervals.push(interval);
     }
 
+    // Giocatore
     const player = document.createElement('img');
     player.id = 'player';
     player.src = 'try.png';
@@ -178,11 +158,11 @@ function startGame() {
     player.style.transform = 'rotate(0deg)';
     gameArea.appendChild(player);
 
+    // Timer
     const timer = document.createElement('div');
     timer.id = 'timer';
     timer.style.position = 'fixed';
     timer.style.zIndex = 10;
-
     timer.style.top = '50%';
     timer.style.left = '50%';
     timer.style.transform = 'translate(-50%, -50%)';
@@ -206,14 +186,14 @@ function startGame() {
     setTimeout(() => {
         specialReady = true;
         showSpecialReady();
-    }, 10000); // 10 secondi per caricare l'attacco
+    }, 10000);
     document.addEventListener('keydown', handleLaneChange);
     document.addEventListener('keydown', handleSpecialAttack);
 
-    // Nemici spawnano molto più spesso
+    // Nemici
     enemyInterval = setInterval(createEnemy, 350);
 
-    // Barra di carica speciale
+    // Speciale
     let specialBar = document.createElement('div');
     specialBar.id = 'specialBar';
     specialBar.style.position = 'fixed';
@@ -224,7 +204,7 @@ function startGame() {
     specialBar.style.alignItems = 'center';
     specialBar.style.zIndex = 20;
 
-    // Icona Gaster Blaster
+    // Icona
     let specialIcon = document.createElement('img');
     specialIcon.src = 'gaster2.png';
     specialIcon.style.height = '60px';
@@ -232,7 +212,7 @@ function startGame() {
     specialIcon.style.marginRight = '10px';
     specialBar.appendChild(specialIcon);
 
-    // Barra vera e propria
+    // Barra
     let specialBarFill = document.createElement('div');
     specialBarFill.id = 'specialBarFill';
     specialBarFill.style.height = '24px';
@@ -244,7 +224,7 @@ function startGame() {
     specialBarFill.style.imageRendering = 'pixelated';
     specialBar.appendChild(specialBarFill);
 
-    // Riempimento dinamico
+    // Riempimento
     let specialBarInner = document.createElement('div');
     specialBarInner.id = 'specialBarInner';
     specialBarInner.style.height = '100%';
@@ -253,7 +233,7 @@ function startGame() {
     specialBarInner.style.transition = 'width 0.2s';
     specialBarFill.appendChild(specialBarInner);
 
-    // Testo sotto la barra
+    // Testo
     let specialBarText = document.createElement('div');
     specialBarText.id = 'specialBarText';
     specialBarText.innerText = "Press 'Z' to use Gaster Blaster";
@@ -278,7 +258,6 @@ function startGame() {
     }, 10000);
 }
 
-
 function handleSpecialAttack(e) {
     if ((e.key === 'z' || e.key === 'Z') && specialReady && !specialActive) {
         activateSpecial();
@@ -286,12 +265,12 @@ function handleSpecialAttack(e) {
 }
 
 function activateSpecial() {
-    updateSpecialBar(0); // Reset barra subito
+    updateSpecialBar(0);
     specialReady = false;
     specialActive = true;
     const gameArea = document.getElementById('gameArea');
     gasterBlasterEl = document.createElement('img');
-    gasterBlasterEl.src = 'gaster1.png'; // sprite 1
+    gasterBlasterEl.src = 'gaster1.png';
     gasterBlasterEl.style.position = 'absolute';
     gasterBlasterEl.style.height = '120px';
     gasterBlasterEl.style.left = '120px';
@@ -299,25 +278,25 @@ function activateSpecial() {
     gasterBlasterEl.style.zIndex = 5;
     gameArea.appendChild(gasterBlasterEl);
 
-    // SUONO DEL RAGGIO PARTE SUBITO
+    // Suono
     const blastSound = new Audio('gasterblaster.mp3');
     blastSound.volume = 1;
     blastSound.play();
 
-    // INIZIA SUBITO LA RICARICA DELLA BARRA
+    // Ricarica
     startSpecialBarCharge(10000);
 
     setTimeout(() => {
-        // Dopo 1 secondo: Sprite 2 (raggio)
+        // Sprite
         gasterBlasterEl.src = 'gaster2.png';
 
-        // CREA IL RAGGIO VISIBILE
+        // Raggio
         beamEl = document.createElement('div');
         beamEl.className = 'gaster-beam';
         beamEl.style.position = 'absolute';
-        beamEl.style.left = '220px'; // parte dalla bocca
+        beamEl.style.left = '220px';
         beamEl.style.top = `${lanePositions[currentLane] - 25}px`;
-        beamEl.style.width = `calc(100vw - 240px)`; // si estende fino a fine schermo
+        beamEl.style.width = `calc(100vw - 240px)`;
         beamEl.style.height = '50px';
         beamEl.style.background = 'linear-gradient(90deg, #fff 80%, #bff 100%)';
         beamEl.style.boxShadow = '0 0 40px 20px #fff8';
@@ -326,16 +305,15 @@ function activateSpecial() {
         beamEl.style.borderRadius = '18px';
         gameArea.appendChild(beamEl);
 
-        // Rimuovi tutti i nemici nella corsia attuale subito
+        // Pulizia
         clearEnemiesInLane(currentLane);
-        // Per 3 secondi, ogni 100ms, elimina i nemici nella corsia attuale (anche se cambi corsia)
         specialTimeout = setInterval(() => {
             clearEnemiesInLane(currentLane);
         }, 100);
 
         setTimeout(() => {
             clearInterval(specialTimeout);
-            // Sprite 3 (vuoto)
+            // Fine
             gasterBlasterEl.src = 'gaster3.png';
             if (beamEl) {
                 beamEl.remove();
@@ -347,7 +325,6 @@ function activateSpecial() {
                     gasterBlasterEl = null;
                 }
                 specialActive = false;
-                // DOPO 10 SECONDI, ABILITA L'ATTACCO
                 setTimeout(() => {
                     specialReady = true;
                     showSpecialReady();
@@ -355,7 +332,7 @@ function activateSpecial() {
                 }, 10000);
             }, 500);
         }, 3000);
-    }, 1000); // 1 secondo sprite 1, poi sprite 2
+    }, 1000);
 }
 
 function clearEnemiesInLane(lane) {
@@ -377,11 +354,10 @@ function handleLaneChange(e) {
         if (currentLane < laneCount - 1) currentLane++;
     }
     movePlayerToLane();
-    // Se il Gaster Blaster è attivo, spostalo nella nuova corsia
+    // Sposta
     if (specialActive && gasterBlasterEl) {
         gasterBlasterEl.style.top = `${lanePositions[currentLane] - 60}px`;
     }
-    // Se il raggio è attivo, spostalo nella nuova corsia
     if (specialActive && beamEl) {
         beamEl.style.top = `${lanePositions[currentLane] - 25}px`;
     }
@@ -445,48 +421,10 @@ function endGame() {
     laneLineIntervals.forEach(clearInterval);
     document.removeEventListener('keydown', handleLaneChange);
 
-    const gameArea = document.getElementById('gameArea');
-    gameArea.innerHTML = '';
-
-    // Mostra "GET DUNKED ON." centrato
-    const dunked = document.createElement('div');
-    dunked.innerText = "GET DUNKED ON.";
-    dunked.style.position = 'fixed';
-    dunked.style.left = '50%';
-    dunked.style.top = '50%';
-    dunked.style.transform = 'translate(-50%, -50%)';
-    dunked.style.color = '#fff';
-    dunked.style.fontFamily = 'pixel, monospace';
-    dunked.style.fontSize = '64px';
-    dunked.style.textAlign = 'center';
-    dunked.style.textShadow = '0 0 16px #000';
-    dunked.style.zIndex = 101;
-    gameArea.appendChild(dunked);
-
-    // Dopo 1 secondo, esplosione
-    setTimeout(() => {
-        gameArea.innerHTML = '';
-        const exp = document.createElement('img');
-        exp.src = 'exp.gif';
-        exp.style.position = 'fixed';
-        exp.style.left = '50%';
-        exp.style.top = '50%';
-        exp.style.transform = 'translate(-50%, -50%)';
-        exp.style.width = '200vw';
-        exp.style.height = '200vh';
-        exp.style.objectFit = 'cover';
-        exp.style.imageRendering = 'pixelated';
-        exp.style.zIndex = 100;
-        gameArea.appendChild(exp);
-
-        // Suono exp.mp3
-        const expSound = new Audio('exp.mp3');
-        expSound.volume = 1;
-        expSound.play();
-
-        // Dopo 1.8 secondi, ricarica la pagina
-        setTimeout(() => window.location.reload(), 1800);
-    }, 1000);
+    gasterBlastTextSequence({
+        text: "GET DUNKED ON.",
+        onEnd: () => setTimeout(() => window.location.reload(), 300)
+    });
 }
 
 function updateSpecialBar(percent) {
@@ -503,4 +441,98 @@ function startSpecialBarCharge(durationMs) {
         updateSpecialBar(percent);
         if (percent >= 100) clearInterval(interval);
     }, 50);
+}
+
+function gasterBlastTextSequence({text, onEnd}) {
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = '';
+
+    // Gaster
+    const gaster = document.createElement('img');
+    gaster.src = 'gaster1.png';
+    gaster.style.position = 'absolute';
+    gaster.style.left = '120px';
+    gaster.style.top = 'calc(50% - 60px)';
+    gaster.style.height = '120px';
+    gaster.style.imageRendering = 'pixelated';
+    gaster.style.zIndex = 10;
+    gameArea.appendChild(gaster);
+
+    // Testo
+    const blastText = document.createElement('div');
+    blastText.innerText = text;
+    blastText.style.position = 'absolute';
+    blastText.style.left = '50%';
+    blastText.style.top = '50%';
+    blastText.style.transform = 'translate(-50%, -50%)';
+    blastText.style.color = '#fff';
+    blastText.style.fontFamily = 'pixel, monospace';
+    blastText.style.fontSize = text === "GET DUNKED ON." ? '64px' : '38px';
+    blastText.style.textAlign = 'center';
+    blastText.style.textShadow = '0 0 8px #000';
+    blastText.style.zIndex = 11;
+    gameArea.appendChild(blastText);
+
+    // Carica
+    const charge = new Audio('gasterblaster.mp3');
+    charge.volume = 1;
+    charge.play();
+
+    setTimeout(() => {
+        // Sprite
+        gaster.src = 'gaster2.png';
+
+        // Raggio
+        const beam = document.createElement('div');
+        beam.className = 'gaster-beam';
+        beam.style.position = 'absolute';
+        beam.style.left = '220px';
+        beam.style.top = 'calc(50% - 25px)';
+        beam.style.width = `calc(50vw - 220px)`;
+        beam.style.height = '50px';
+        beam.style.background = 'linear-gradient(90deg, #fff 80%, #bff 100%)';
+        beam.style.boxShadow = '0 0 40px 20px #fff8';
+        beam.style.opacity = '0.85';
+        beam.style.zIndex = 12;
+        beam.style.borderRadius = '18px';
+        beam.style.imageRendering = 'pixelated';
+        gameArea.appendChild(beam);
+
+        // Sparo
+        const shoot = new Audio('gasterblaster.mp3');
+        shoot.volume = 1;
+        shoot.currentTime = 0.3;
+        shoot.play();
+
+        setTimeout(() => {
+            blastText.remove();
+
+            // Esplosione
+            const exp = document.createElement('img');
+            exp.src = 'exp.gif';
+            exp.style.position = 'fixed';
+            exp.style.left = '50%';
+            exp.style.top = '50%';
+            exp.style.transform = 'translate(-50%, -50%)';
+            exp.style.width = '200vw';
+            exp.style.height = '200vh';
+            exp.style.objectFit = 'cover';
+            exp.style.imageRendering = 'pixelated';
+            exp.style.zIndex = 13;
+            gameArea.appendChild(exp);
+
+            // Suono
+            const expSound = new Audio('exp.mp3');
+            expSound.volume = 1;
+            expSound.play();
+
+            setTimeout(() => {
+                beam.remove();
+            }, 550);
+
+            setTimeout(() => {
+                if (onEnd) onEnd();
+            }, 1100);
+        }, 400);
+    }, 600);
 }

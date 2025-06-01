@@ -51,3 +51,15 @@ body {
 #specialBarFill {
     image-rendering: pixelated;
 }
+.watermark {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  font-family: pixel;
+  font-size: 12px;
+  color: rgba(255,255,255,0.2); /* White, very transparent */
+  pointer-events: none; /* Clicks pass through */
+  user-select: none;
+  z-index: 9999;
+  text-shadow: 1px 1px 0 #000, 2px 2px 0 #000; /* Pixelated shadow for visibility */
+}
